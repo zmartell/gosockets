@@ -96,3 +96,15 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+      # Make the package public
+      - name: Make package public
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          echo "Making package public..."
+          PACKAGE_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
+          curl -X PATCH \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{"visibility":"public"}' \
+            "https://api.github.com/user/packages/container/$PACKAGE_NAME"
